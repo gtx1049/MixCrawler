@@ -9,6 +9,7 @@ import android.webkit.WebView;
 import android.widget.Button;
 
 import com.gtx.crawler.BaseDig;
+import com.gtx.crawler.DianDig;
 import com.gtx.crawler.MeiDig;
 
 
@@ -27,7 +28,7 @@ public class MainActivity extends ActionBarActivity
 
         wb = (WebView)findViewById(R.id.webview);
 
-        bd = new MeiDig(wb);
+        bd = new DianDig(wb);
         bd.load();
 
         bt = (Button)findViewById(R.id.get_content);
