@@ -20,6 +20,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
@@ -45,35 +46,17 @@ public class DianFilter extends BaseFilter
     public Entry getEntry(final String url)
     {
         Toast.makeText(context, url, Toast.LENGTH_SHORT);
-        //AsyncHttpClient client = new AsyncHttpClient();
+        AsyncHttpClient client = new AsyncHttpClient();
 
         //I can't use AsyncHttpClient but I use the default httpclient
-        //I don't know why, may something wrong with HttpParam?
-        //8 parameter in Async, only 4 in httpclient
 
-        new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                try
-                {
-                    HttpGet getMethod = new HttpGet(url);
-                    HttpClient httpClient = new DefaultHttpClient();
-                    HttpResponse response = null;
-                    response = httpClient.execute(getMethod);
-                    Log.i(TAG, "resCode = " + response.getStatusLine().getStatusCode());
-                    String htmlResponse = EntityUtils.toString(response.getEntity(), "utf-8");
-                    writeToFile("dian.html", htmlResponse.getBytes());
-                    parseForm(htmlResponse);
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        //YES! I know the reason, DIANPING will inspect the user_agent param
+        //if the param is null, it will reply wrong info
+        //if the param is something others, it replies the elder content page
+        //So, we need put the user agent ad WebKit
+        client.getHttpClient().getParams().setParameter(CoreProtocolPNames.USER_AGENT, "WebKit");
 
-        /*client.get(url, new AsyncHttpResponseHandler()
+        client.get(url, new AsyncHttpResponseHandler()
         {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody)
@@ -97,7 +80,7 @@ public class DianFilter extends BaseFilter
                 Toast.makeText(context, "Start!", Toast.LENGTH_SHORT);
                 // called before request is started
             }
-        });*/
+        });
         return null;
     }
 
@@ -105,8 +88,8 @@ public class DianFilter extends BaseFilter
     {
         Document doc = Jsoup.parse(form);
 
-        Element priceElement = doc.select("div.buy-box").first();
-        String price = priceElement.html();
+        Element priceElement = doc.select("div.price").first();
+        String price = priceElement.nextElementSibling().html();
 
         Element titleElement = doc.select("div.intro").first();
         String title = titleElement.select("h3").first().html();
@@ -115,9 +98,10 @@ public class DianFilter extends BaseFilter
 
         String address = doc.select("div.address").first().html();
 
-        String urlpic = doc.select("div.info").first().select("img").first().attr("src");
+        Element content = doc.select("div.content").first();
+        String urlpic = content.select("div.info").first().select("img").attr("src");
 
-        this.savePic(urlpic, urlpic.substring(urlpic.length() - 15, urlpic.length()));
+        this.savePic(urlpic, urlpic.substring(urlpic.length() - 15, urlpic.length()).replaceAll("/", "&"));
 
         Log.d(TAG, "Price : " + price);
         Log.d(TAG, "Title : " + title);
