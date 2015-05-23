@@ -64,6 +64,7 @@ public class DianFilter extends BaseFilter
                     response = httpClient.execute(getMethod);
                     Log.i(TAG, "resCode = " + response.getStatusLine().getStatusCode());
                     String htmlResponse = EntityUtils.toString(response.getEntity(), "utf-8");
+                    writeToFile("dian.html", htmlResponse.getBytes());
                     parseForm(htmlResponse);
                 } catch (IOException e)
                 {
@@ -104,7 +105,7 @@ public class DianFilter extends BaseFilter
     {
         Document doc = Jsoup.parse(form);
 
-        /*Element priceElement = doc.select("div.price").first();
+        Element priceElement = doc.select("div.buy-box").first();
         String price = priceElement.html();
 
         Element titleElement = doc.select("div.intro").first();
@@ -122,7 +123,7 @@ public class DianFilter extends BaseFilter
         Log.d(TAG, "Title : " + title);
         Log.d(TAG, "Description : " + description);
         Log.d(TAG, "Address : " + address);
-        Log.d(TAG, "Pic : " + urlpic);*/
+        Log.d(TAG, "Pic : " + urlpic);
 
         return null;
     }
